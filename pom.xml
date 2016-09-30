@@ -75,5 +75,52 @@
 	</dependency>
 
 
+	<!-- https://mvnrepository.com/artifact/org.quartz-scheduler/quartz -->
+	<dependency>
+    	<groupId>org.quartz-scheduler</groupId>
+    	<artifactId>quartz</artifactId>
+    	<version>1.8.4</version>
+	</dependency>
+	
+
   </dependencies>
+  
+  <build>
+		<plugins>
+			<!-- compiler≤Âº˛, …Ë∂®JDK∞Ê±æ -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>1.7</source>
+					<target>1.7</target>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>cn.smq.spider.Spider</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
