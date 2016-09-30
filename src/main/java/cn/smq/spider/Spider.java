@@ -38,6 +38,7 @@ import cn.smq.spider.repository.Repository;
 import cn.smq.spider.store.ConsoleStore;
 import cn.smq.spider.store.HbaseStore;
 import cn.smq.spider.store.Storeable;
+import cn.smq.spider.utils.Config;
 import cn.smq.spider.utils.HtmlUtils;
 import cn.smq.spider.utils.PageUtils;
 import cn.smq.spider.utils.SleepUtils;
@@ -48,7 +49,7 @@ public class Spider {
 	private Storeable storeable = new ConsoleStore();
 	private Repository repository = new QueueRepository();
 	Logger logger = LoggerFactory.getLogger(Spider.class);
-	ExecutorService threadPool = Executors.newFixedThreadPool(5);
+	ExecutorService threadPool = Executors.newFixedThreadPool(Config.nThread);
 	
 	//private Queue<String> queue = new ConcurrentLinkedDeque<String>();
 
@@ -83,9 +84,12 @@ public class Spider {
 							System.out.println("This is a new page ----------------->" + url);
 						}
 						
-						SleepUtils.sleep(2000);
+						SleepUtils.sleep(Config.millis_1);
 					}
 				});
+			} else {
+				logger.info("currently do not have urls, sleep for a while");
+				SleepUtils.sleep(Config.millis_5);
 			}
 		}
 	}
