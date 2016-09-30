@@ -29,6 +29,7 @@ import cn.smq.spider.download.HttpClientDownload;
 import cn.smq.spider.process.JdProcess;
 import cn.smq.spider.process.Processable;
 import cn.smq.spider.repository.QueueRepository;
+import cn.smq.spider.repository.RedisRepository;
 import cn.smq.spider.repository.Repository;
 import cn.smq.spider.store.ConsoleStore;
 import cn.smq.spider.store.HbaseStore;
@@ -133,6 +134,7 @@ public class Spider {
 		spider.setProcessable(new JdProcess());
 		spider.setStoreable(new ConsoleStore());
 		spider.setRepository(new QueueRepository());
+		//spider.setRepository(new RedisRepository());
 		spider.setSeedUrl(url);
 		
 		spider.start();
