@@ -22,6 +22,42 @@ public class JdProcess implements Processable{
 		HtmlCleaner htmlCleaner = new HtmlCleaner();
 		//parser web page
 		TagNode rootNode = htmlCleaner.clean(content); 
+		if (page.getUrl().startsWith("http://list.jd.com/list.html")) {
+			
+			try {
+				// get current page goods url
+				Object[] evaluateXPath = rootNode.evaluateXPath("//*[@id=\"plist\"]/ul/li/div/div[1]/a");
+				for (Object object : evaluateXPath) {
+					TagNode tagNode = (TagNode)object;
+					page.addUrl("http:"+tagNode.getAttributeByName("href"));
+				}
+				
+				// get next page url 获取下一页的url
+				//String nextUrl = HtmlUtils.getAttributeByName(rootNode, "//*[@id=\"J_topPage\"]/a[2]", "href");
+				String start_position = HtmlUtils.getText(rootNode, "//*[@id=\"J_topPage\"]/span/b");
+				String end_position = HtmlUtils.getText(rootNode, "//*[@id=\"J_topPage\"]/span/i");
+				if(Integer.parseInt(start_position)<Integer.parseInt(end_position)){
+					String nextUrl = "http://list.jd.com/list.html?cat=9987,653,655&page="+(Integer.parseInt(start_position)+1);
+					page.addUrl(nextUrl);
+				}
+				
+			} catch (XPatherException e) {
+				e.printStackTrace();
+			}
+			
+		
+		
+		
+		} else {
+			parseProduct(page, rootNode);
+		}
+		
+	}
+
+	/*
+	 * parse product info
+	 */
+	private void parseProduct(Page page, TagNode rootNode) {
 		try {
 			// get the head
 			String title = HtmlUtils.getText(rootNode, "//*[@id=\"name\"]/h1");
@@ -39,6 +75,7 @@ public class JdProcess implements Processable{
 				goodsId = matcher.group(1);
 			}
 			
+			page.setGoodsId("jd_" + goodsId);
 			String jsonResult = PageUtils.getContent("http://p.3.cn/prices/get?skuid=J_" + goodsId);
 			JSONArray jsonArray = new JSONArray(jsonResult);
 			JSONObject jsonObject = jsonArray.getJSONObject(0);
@@ -81,7 +118,6 @@ public class JdProcess implements Processable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 	
 }
