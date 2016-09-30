@@ -22,6 +22,8 @@ import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cn.smq.spider.domain.Page;
 import cn.smq.spider.download.Downloadable;
@@ -38,18 +40,20 @@ import cn.smq.spider.utils.HtmlUtils;
 import cn.smq.spider.utils.PageUtils;
 
 public class Spider {
-	private Downloadable downloadable;
+	private Downloadable downloadable = new HttpClientDownload();
 	private Processable processable;
-	private Storeable storeable;
-	private Repository repository;
+	private Storeable storeable = new ConsoleStore();
+	private Repository repository = new QueueRepository();
+	Logger logger = LoggerFactory.getLogger(Spider.class);
 	
 	//private Queue<String> queue = new ConcurrentLinkedDeque<String>();
-	
 
 	public void start() {
 		//download();
 		//process();
 		//store();
+		check();
+		logger.info("####################start a spider ###################");
 		while (true) {
 			String url = repository.poll();
 			if (StringUtils.isNotBlank(url)){
@@ -77,6 +81,20 @@ public class Spider {
 		}
 	}
 	
+	private void check() {
+		if(processable==null){
+			//没有设置默认解析类
+			String message = "not set up default parser class";
+			logger.error(message);
+			throw new RuntimeException(message);
+		}
+		logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		logger.info("downloadable implementation class is:{}",downloadable.getClass().getName());
+		logger.info("processable implementation class is:{}",processable.getClass().getName());
+		logger.info("storeable implementation class is:{}",storeable.getClass().getName());
+		logger.info("repository implementation class is:{}",repository.getClass().getName());
+		logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	}
 	
 	/******************************************
 	 * download function
@@ -130,10 +148,11 @@ public class Spider {
 		String url = "http://list.jd.com/list.html?cat=9987%2C653%2C655&go=0";
 		//spider.setSeedUrl(url);  pointer null
 		
-		spider.setDownloadable(new HttpClientDownload());
+		//spider.setDownloadable(new HttpClientDownload());
 		spider.setProcessable(new JdProcess());
-		spider.setStoreable(new ConsoleStore());
-		spider.setRepository(new QueueRepository());
+		//spider.setStoreable(new ConsoleStore());
+		//spider.setRepository(new QueueRepository());
+		
 		//spider.setRepository(new RedisRepository());
 		spider.setSeedUrl(url);
 		
