@@ -35,7 +35,7 @@ public class PageUtils {
 			content = EntityUtils.toString(entity);
 			
 			//********* 可以用来统计spider性能 can be used to calculate spider performance********
-			logger.info("successfully downloading current page, url is:{}, it takes:{}", url, System.currentTimeMillis()-start_time);
+			logger.info("successfully loading current page, url is:{}, it takes:{}", url, System.currentTimeMillis()-start_time);
 		} catch (ClientProtocolException e) {
 			//e.printStackTrace();
 			logger.error("loading current page failed,url:{},ClientProtocolException",url);

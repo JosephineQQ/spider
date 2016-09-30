@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +40,7 @@ import cn.smq.spider.store.HbaseStore;
 import cn.smq.spider.store.Storeable;
 import cn.smq.spider.utils.HtmlUtils;
 import cn.smq.spider.utils.PageUtils;
+import cn.smq.spider.utils.SleepUtils;
 
 public class Spider {
 	private Downloadable downloadable = new HttpClientDownload();
@@ -45,6 +48,7 @@ public class Spider {
 	private Storeable storeable = new ConsoleStore();
 	private Repository repository = new QueueRepository();
 	Logger logger = LoggerFactory.getLogger(Spider.class);
+	ExecutorService threadPool = Executors.newFixedThreadPool(5);
 	
 	//private Queue<String> queue = new ConcurrentLinkedDeque<String>();
 
@@ -55,28 +59,33 @@ public class Spider {
 		check();
 		logger.info("####################start a spider ###################");
 		while (true) {
-			String url = repository.poll();
+			final String url = repository.poll();
 			if (StringUtils.isNotBlank(url)){
-				Page page = this.download(url);
-				this.process(page);
-				List<String> urls = page.getUrls();
-				for (String nextUrl : urls) {
-					//parse page url first then parse each items price
-					//先解析列表页面再解析商品页面
-					if (nextUrl.startsWith("http://item.jd.com/")) {
-						repository.add(nextUrl);
-					} else {
-						repository.addHigh(nextUrl);
-					}
-					
-
-				}
 				
-				if (url.startsWith("http://item.jd.com/")) {
-					this.store(page);
-				} else {
-					System.out.println("This is a new page ----------------->" + url);
-				}
+				threadPool.execute(new Runnable() {
+					public void run() {
+						Page page = Spider.this.download(url);
+						Spider.this.process(page);
+						List<String> urls = page.getUrls();
+						for (String nextUrl : urls) {
+							//parse page url first then parse each items price
+							//先解析列表页面再解析商品页面
+							if (nextUrl.startsWith("http://item.jd.com/")) {
+								repository.add(nextUrl);
+							} else {
+								repository.addHigh(nextUrl);
+							}
+
+						}
+						if (url.startsWith("http://item.jd.com/")) {
+							Spider.this.store(page);
+						} else {
+							System.out.println("This is a new page ----------------->" + url);
+						}
+						
+						SleepUtils.sleep(2000);
+					}
+				});
 			}
 		}
 	}
