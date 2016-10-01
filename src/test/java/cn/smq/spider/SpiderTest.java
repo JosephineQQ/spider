@@ -9,6 +9,7 @@ import cn.smq.spider.download.HttpClientDownload;
 import cn.smq.spider.process.JdProcess;
 import cn.smq.spider.store.ConsoleStore;
 import cn.smq.spider.store.HbaseStore;
+import cn.smq.spider.utils.PageUtils;
 
 public class SpiderTest {
 	@Test
@@ -33,6 +34,12 @@ public class SpiderTest {
 		
 		//System.out.println(page.getValues().get("spec"));
 		spider.store(page); */
+	}
+	
+	@Test
+	public void test2() throws Exception {
+		String content = PageUtils.getContent("http://item.jd.com/1856588.html");
+		System.out.println(content);
 	}
 	
 	
