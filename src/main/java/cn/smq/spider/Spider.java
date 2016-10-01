@@ -1,6 +1,8 @@
 package cn.smq.spider;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -10,6 +12,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -19,6 +25,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs.Ids;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
@@ -43,6 +51,15 @@ import cn.smq.spider.utils.HtmlUtils;
 import cn.smq.spider.utils.PageUtils;
 import cn.smq.spider.utils.SleepUtils;
 
+import java.net.InetAddress;
+
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs.Ids;
+
 public class Spider {
 	private Downloadable downloadable = new HttpClientDownload();
 	private Processable processable;
@@ -52,6 +69,33 @@ public class Spider {
 	ExecutorService threadPool = Executors.newFixedThreadPool(Config.nThread);
 	
 	//private Queue<String> queue = new ConcurrentLinkedDeque<String>();
+	
+	//constructor, for zookeeper
+	public Spider() {
+		//get zookeeper connection
+		String connectString = "192.168.1.171:2181,192.168.1.172:2181"; //connect to zookeeper cluster
+		int sessionTimeoutMs = 5000;//response failed time, must between 4s and 40s
+		int connectionTimeoutMs = 1000;//connection time out
+		RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+		CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, sessionTimeoutMs, connectionTimeoutMs, retryPolicy);
+		client.start();
+		
+		InetAddress localHost;
+		try {
+			localHost = InetAddress.getLocalHost();
+			String ip = localHost.getHostAddress();
+			client.create()
+			.creatingParentsIfNeeded()
+			.withMode(CreateMode.EPHEMERAL)//Ephemeral Node 
+			.withACL(Ids.OPEN_ACL_UNSAFE)
+			.forPath("/spider/"+ip);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
 
 	public void start() {
 		//download();
